@@ -13,6 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setExercises, setLoading, setError } from '../store/slices/exercisesSlice';
 import { apiService } from '../services/apiService';
@@ -29,14 +30,50 @@ export const HomeScreen = ({ navigation }: any) => {
   const [waterModalVisible, setWaterModalVisible] = useState(false);
   const [exercisesModalVisible, setExercisesModalVisible] = useState(false);
   const [calorieModalVisible, setCalorieModalVisible] = useState(false);
+  const [meditationModalVisible, setMeditationModalVisible] = useState(false);
   const [waterIntake, setWaterIntake] = useState(0);
   const [waterGoal] = useState(8); // 8 glasses per day
   const [customWaterAmount, setCustomWaterAmount] = useState('');
   const [foodSearch, setFoodSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  
+  // Personal calorie calculator states
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('male');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [activityLevel, setActivityLevel] = useState('moderate');
+  const [calculatedCalories, setCalculatedCalories] = useState<number | null>(null);
+  const [calculatedBMI, setCalculatedBMI] = useState<number | null>(null);
+  const [showCalculator, setShowCalculator] = useState(true);
+
+  // Motivational quotes
+  const motivationalQuotes = [
+    "The only bad workout is the one that didn't happen.",
+    "Your body can stand almost anything. It's your mind you have to convince.",
+    "Take care of your body. It's the only place you have to live.",
+    "Success is the sum of small efforts repeated day in and day out.",
+    "The difference between who you are and who you want to be is what you do.",
+    "Don't limit your challenges. Challenge your limits.",
+    "Strive for progress, not perfection.",
+    "Small steps every day lead to big results.",
+    "Believe in yourself and all that you are.",
+    "Your health is an investment, not an expense.",
+    "Start where you are. Use what you have. Do what you can.",
+    "The body achieves what the mind believes.",
+    "Make yourself a priority once in a while. It's not selfish, it's necessary.",
+    "Every accomplishment starts with the decision to try.",
+    "You are stronger than you think."
+  ];
+
+  const [dailyQuote] = useState(() => {
+    const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+    return motivationalQuotes[randomIndex];
+  });
 
   useEffect(() => {
     loadExercises();
+    loadHealthData();
     
     // Update time every minute
     const timer = setInterval(() => {
@@ -53,6 +90,48 @@ export const HomeScreen = ({ navigation }: any) => {
       dispatch(setExercises(data));
     } catch (err) {
       dispatch(setError('Failed to load exercises'));
+    }
+  };
+
+  const loadHealthData = async () => {
+    try {
+      const userId = user?.id || user?.email;
+      if (!userId) return;
+
+      const healthDataKey = `health_data_${userId}`;
+      const savedData = await AsyncStorage.getItem(healthDataKey);
+      
+      if (savedData) {
+        const { age, gender, weight, height, activityLevel, calculatedCalories, calculatedBMI } = JSON.parse(savedData);
+        
+        // Restore all saved values
+        if (age) setAge(age);
+        if (gender) setGender(gender);
+        if (weight) setWeight(weight);
+        if (height) setHeight(height);
+        if (activityLevel) setActivityLevel(activityLevel);
+        if (calculatedCalories) setCalculatedCalories(calculatedCalories);
+        if (calculatedBMI) setCalculatedBMI(calculatedBMI);
+        
+        // If we have calculated values, hide the calculator form
+        if (calculatedCalories && calculatedBMI) {
+          setShowCalculator(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading health data:', error);
+    }
+  };
+
+  const saveHealthData = async (data: any) => {
+    try {
+      const userId = user?.id || user?.email;
+      if (!userId) return;
+
+      const healthDataKey = `health_data_${userId}`;
+      await AsyncStorage.setItem(healthDataKey, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving health data:', error);
     }
   };
 
@@ -168,6 +247,77 @@ export const HomeScreen = ({ navigation }: any) => {
     }
   };
 
+  const calculateCalories = () => {
+    const ageNum = parseInt(age);
+    const weightNum = parseFloat(weight);
+    const heightNum = parseFloat(height);
+
+    if (!ageNum || !weightNum || !heightNum || ageNum <= 0 || weightNum <= 0 || heightNum <= 0) {
+      Alert.alert('Invalid Input', 'Please enter valid age, weight, and height values.');
+      return;
+    }
+
+    // Mifflin-St Jeor Equation
+    let bmr: number;
+    if (gender === 'male') {
+      bmr = 10 * weightNum + 6.25 * heightNum - 5 * ageNum + 5;
+    } else {
+      bmr = 10 * weightNum + 6.25 * heightNum - 5 * ageNum - 161;
+    }
+
+    // Activity multipliers
+    const activityMultipliers: { [key: string]: number } = {
+      sedentary: 1.2,
+      light: 1.375,
+      moderate: 1.55,
+      active: 1.725,
+      veryActive: 1.9,
+    };
+
+    const tdee = Math.round(bmr * activityMultipliers[activityLevel]);
+    
+    // Calculate BMI: weight (kg) / (height (m))^2
+    const heightInMeters = heightNum / 100;
+    const bmi = parseFloat((weightNum / (heightInMeters * heightInMeters)).toFixed(1));
+    
+    setCalculatedCalories(tdee);
+    setCalculatedBMI(bmi);
+    setShowCalculator(false);
+
+    // Save health data to AsyncStorage
+    saveHealthData({
+      age,
+      gender,
+      weight,
+      height,
+      activityLevel,
+      calculatedCalories: tdee,
+      calculatedBMI: bmi
+    });
+  };
+
+  const resetCalculator = async () => {
+    setAge('');
+    setWeight('');
+    setHeight('');
+    setGender('male');
+    setActivityLevel('moderate');
+    setCalculatedCalories(null);
+    setCalculatedBMI(null);
+    setShowCalculator(true);
+
+    // Clear saved health data
+    try {
+      const userId = user?.id || user?.email;
+      if (userId) {
+        const healthDataKey = `health_data_${userId}`;
+        await AsyncStorage.removeItem(healthDataKey);
+      }
+    } catch (error) {
+      console.error('Error clearing health data:', error);
+    }
+  };
+
   const renderExerciseCard = ({ item }: { item: Exercise }) => (
     <TouchableOpacity
       style={styles.card}
@@ -232,6 +382,26 @@ export const HomeScreen = ({ navigation }: any) => {
           <Text style={styles.headerSubtitle}>Ready for your workout?</Text>
         </View>
 
+        {/* Health Stats */}
+        {calculatedBMI !== null && calculatedCalories !== null && (
+          <View style={styles.healthStatsContainer}>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>Your BMI</Text>
+              <Text style={styles.statValue}>{calculatedBMI}</Text>
+              <Text style={styles.statCategory}>
+                {calculatedBMI < 18.5 ? 'Underweight' :
+                 calculatedBMI < 25 ? 'Normal' :
+                 calculatedBMI < 30 ? 'Overweight' : 'Obese'}
+              </Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>Daily Calories</Text>
+              <Text style={styles.statValue}>{calculatedCalories}</Text>
+              <Text style={styles.statCategory}>cal/day</Text>
+            </View>
+          </View>
+        )}
+
         {/* Quick Action Buttons */}
         <View style={styles.quickActionsContainer}>
           <TouchableOpacity
@@ -255,21 +425,50 @@ export const HomeScreen = ({ navigation }: any) => {
 
         <View style={styles.quickActionsContainer}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.calorieButton]}
+            style={styles.actionButton}
             onPress={() => setCalorieModalVisible(true)}
           >
             <Text style={styles.actionIcon}>🍽️</Text>
             <Text style={styles.actionText}>Calorie Guide</Text>
             <Text style={styles.actionSubtext}>Daily recommendations</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setMeditationModalVisible(true)}
+          >
+            <Text style={styles.actionIcon}>🧘</Text>
+            <Text style={styles.actionText}>Meditation</Text>
+            <Text style={styles.actionSubtext}>Daily mindfulness</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Meditation Steps */}
-        <ScrollView 
-          style={styles.meditationContainer}
-          showsVerticalScrollIndicator={false}
-        >
-        <View style={styles.meditationCard}>
+        {/* Motivational Quote */}
+        <View style={styles.quoteContainer}>
+          <View style={styles.quoteCard}>
+            <Text style={styles.quoteText}>"{dailyQuote}"</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Meditation Modal */}
+      <Modal
+        visible={meditationModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setMeditationModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🧘 Daily Meditation Guide</Text>
+              <TouchableOpacity onPress={() => setMeditationModalVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.meditationCard}>
           <Text style={styles.meditationTitle}>🧘 Daily Meditation Guide</Text>
           <Text style={styles.meditationSubtitle}>Take a moment to center yourself</Text>
           
@@ -345,14 +544,17 @@ export const HomeScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          <View style={styles.meditationTip}>
-            <Text style={styles.tipIcon}>💡</Text>
-            <Text style={styles.meditationTipText}>
-              Start with 5 minutes daily and gradually increase.{'\n'}Consistency is more important than duration.
-            </Text>
-          </View>
+              <View style={styles.meditationTip}>
+                <Text style={styles.tipIcon}>💡</Text>
+                <Text style={styles.meditationTipText}>
+                  Start with 5 minutes daily and gradually increase.{'\n'}Consistency is more important than duration.
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
+      </View>
+    </Modal>
 
       {/* Water Tracker Modal */}
       <Modal
@@ -574,12 +776,176 @@ export const HomeScreen = ({ navigation }: any) => {
                   )}
                 </View>
 
+                {/* Personal Calorie Calculator */}
+                <View style={styles.calorieSection}>
+                  <Text style={styles.calorieSectionTitle}>🧮 Personal Calorie Calculator</Text>
+                  <Text style={styles.foodSearchSubtitle}>
+                    Calculate your personalized daily calorie needs
+                  </Text>
+
+                  {showCalculator ? (
+                    <View style={styles.calculatorContainer}>
+                      <TextInput
+                        style={styles.calculatorInput}
+                        value={age}
+                        onChangeText={setAge}
+                        placeholder="Age (years)"
+                        placeholderTextColor={theme.textSecondary}
+                        keyboardType="numeric"
+                      />
+
+                      <View style={styles.genderContainer}>
+                        <Text style={styles.genderLabel}>Gender:</Text>
+                        <View style={styles.genderButtons}>
+                          <TouchableOpacity
+                            style={[
+                              styles.genderButton,
+                              gender === 'male' && styles.genderButtonActive
+                            ]}
+                            onPress={() => setGender('male')}
+                          >
+                            <Text style={[
+                              styles.genderButtonText,
+                              gender === 'male' && styles.genderButtonTextActive
+                            ]}>👨 Male</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.genderButton,
+                              gender === 'female' && styles.genderButtonActive
+                            ]}
+                            onPress={() => setGender('female')}
+                          >
+                            <Text style={[
+                              styles.genderButtonText,
+                              gender === 'female' && styles.genderButtonTextActive
+                            ]}>👩 Female</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <TextInput
+                        style={styles.calculatorInput}
+                        value={weight}
+                        onChangeText={setWeight}
+                        placeholder="Weight (kg)"
+                        placeholderTextColor={theme.textSecondary}
+                        keyboardType="numeric"
+                      />
+
+                      <TextInput
+                        style={styles.calculatorInput}
+                        value={height}
+                        onChangeText={setHeight}
+                        placeholder="Height (cm)"
+                        placeholderTextColor={theme.textSecondary}
+                        keyboardType="numeric"
+                      />
+
+                      <View style={styles.activityContainer}>
+                        <Text style={styles.activityLabel}>Activity Level:</Text>
+                        <View style={styles.activityButtons}>
+                          <TouchableOpacity
+                            style={[
+                              styles.activityButton,
+                              activityLevel === 'sedentary' && styles.activityButtonActive
+                            ]}
+                            onPress={() => setActivityLevel('sedentary')}
+                          >
+                            <Text style={[
+                              styles.activityButtonText,
+                              activityLevel === 'sedentary' && styles.activityButtonTextActive
+                            ]}>Sedentary</Text>
+                            <Text style={styles.activityButtonSubtext}>Little/no exercise</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.activityButton,
+                              activityLevel === 'light' && styles.activityButtonActive
+                            ]}
+                            onPress={() => setActivityLevel('light')}
+                          >
+                            <Text style={[
+                              styles.activityButtonText,
+                              activityLevel === 'light' && styles.activityButtonTextActive
+                            ]}>Light</Text>
+                            <Text style={styles.activityButtonSubtext}>1-3 days/week</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.activityButton,
+                              activityLevel === 'moderate' && styles.activityButtonActive
+                            ]}
+                            onPress={() => setActivityLevel('moderate')}
+                          >
+                            <Text style={[
+                              styles.activityButtonText,
+                              activityLevel === 'moderate' && styles.activityButtonTextActive
+                            ]}>Moderate</Text>
+                            <Text style={styles.activityButtonSubtext}>3-5 days/week</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.activityButton,
+                              activityLevel === 'active' && styles.activityButtonActive
+                            ]}
+                            onPress={() => setActivityLevel('active')}
+                          >
+                            <Text style={[
+                              styles.activityButtonText,
+                              activityLevel === 'active' && styles.activityButtonTextActive
+                            ]}>Active</Text>
+                            <Text style={styles.activityButtonSubtext}>6-7 days/week</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.activityButton,
+                              activityLevel === 'veryActive' && styles.activityButtonActive
+                            ]}
+                            onPress={() => setActivityLevel('veryActive')}
+                          >
+                            <Text style={[
+                              styles.activityButtonText,
+                              activityLevel === 'veryActive' && styles.activityButtonTextActive
+                            ]}>Very Active</Text>
+                            <Text style={styles.activityButtonSubtext}>Intense daily</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <TouchableOpacity
+                        style={styles.calculateButton}
+                        onPress={calculateCalories}
+                      >
+                        <Text style={styles.calculateButtonText}>Calculate My Calories</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.resultsContainer}>
+                      <Text style={styles.resultsTitle}>Your Daily Calorie Need</Text>
+                      <View style={styles.resultsCalorieBox}>
+                        <Text style={styles.resultsCalorieNumber}>{calculatedCalories}</Text>
+                        <Text style={styles.resultsCalorieUnit}>calories/day</Text>
+                      </View>
+                      <Text style={styles.resultsSubtext}>
+                        Based on your age ({age}), gender ({gender}), weight ({weight}kg), height ({height}cm), and {activityLevel} activity level
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.editButton}
+                        onPress={resetCalculator}
+                      >
+                        <Text style={styles.editButtonText}>Edit Details</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
                 {/* General Guidelines */}
                 <View style={styles.calorieSection}>
-                  <Text style={styles.calorieSectionTitle}>📊 General Guidelines</Text>
+                  <Text style={styles.calorieSectionTitle}>General Guidelines</Text>
                   
                   <View style={styles.calorieCard}>
-                    <Text style={styles.calorieCardTitle}>👨 Men</Text>
+                    <Text style={styles.calorieCardTitle}>Men</Text>
                     <View style={styles.calorieRow}>
                       <Text style={styles.calorieLabel}>Sedentary:</Text>
                       <Text style={styles.calorieValue}>2,000-2,400 cal/day</Text>
@@ -595,7 +961,7 @@ export const HomeScreen = ({ navigation }: any) => {
                   </View>
 
                   <View style={styles.calorieCard}>
-                    <Text style={styles.calorieCardTitle}>👩 Women</Text>
+                    <Text style={styles.calorieCardTitle}>Women</Text>
                     <View style={styles.calorieRow}>
                       <Text style={styles.calorieLabel}>Sedentary:</Text>
                       <Text style={styles.calorieValue}>1,600-2,000 cal/day</Text>
@@ -613,7 +979,7 @@ export const HomeScreen = ({ navigation }: any) => {
 
                 {/* Goals */}
                 <View style={styles.calorieSection}>
-                  <Text style={styles.calorieSectionTitle}>🎯 Based on Goals</Text>
+                  <Text style={styles.calorieSectionTitle}>Based on Goals</Text>
                   
                   <View style={styles.goalCard}>
                     <Text style={styles.goalIcon}>⬇️</Text>
@@ -682,7 +1048,6 @@ export const HomeScreen = ({ navigation }: any) => {
           </View>
         </View>
       </Modal>
-      </View>
     </SafeAreaView>
   );
 };
@@ -770,10 +1135,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   headerSubtitle: {
     fontSize: 16,
     color: theme.textSecondary,
-  },
-  meditationContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
   },
   meditationCard: {
     backgroundColor: theme.cardBackground,
@@ -1154,9 +1515,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '600',
     textTransform: 'capitalize',
   },
-  calorieButton: {
-    width: '100%',
-  },
   calorieContainer: {
     padding: 20,
   },
@@ -1343,6 +1701,209 @@ const createStyles = (theme: any) => StyleSheet.create({
   noResultsText: {
     fontSize: 15,
     color: theme.textSecondary,
+    textAlign: 'center',
+  },
+  calculatorContainer: {
+    marginTop: 16,
+  },
+  calculatorInput: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: theme.text,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  genderContainer: {
+    marginBottom: 12,
+  },
+  genderLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 8,
+  },
+  genderButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  genderButton: {
+    flex: 1,
+    backgroundColor: theme.surface,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: theme.border,
+  },
+  genderButtonActive: {
+    backgroundColor: theme.primary + '20',
+    borderColor: theme.primary,
+  },
+  genderButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+  },
+  genderButtonTextActive: {
+    color: theme.primary,
+  },
+  activityContainer: {
+    marginBottom: 12,
+  },
+  activityLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 8,
+  },
+  activityButtons: {
+    gap: 8,
+  },
+  activityButton: {
+    backgroundColor: theme.surface,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: theme.border,
+  },
+  activityButtonActive: {
+    backgroundColor: theme.primary + '20',
+    borderColor: theme.primary,
+  },
+  activityButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 4,
+  },
+  activityButtonTextActive: {
+    color: theme.primary,
+  },
+  activityButtonSubtext: {
+    fontSize: 13,
+    color: theme.textSecondary,
+  },
+  calculateButton: {
+    backgroundColor: theme.primary,
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  calculateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  resultsContainer: {
+    marginTop: 16,
+    backgroundColor: theme.surface,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: theme.primary,
+  },
+  resultsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 16,
+  },
+  resultsCalorieBox: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  resultsCalorieNumber: {
+    fontSize: 56,
+    fontWeight: 'bold',
+    color: theme.primary,
+    marginBottom: 4,
+  },
+  resultsCalorieUnit: {
+    fontSize: 18,
+    color: theme.textSecondary,
+    fontWeight: '600',
+  },
+  resultsSubtext: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  editButton: {
+    backgroundColor: theme.primary + '20',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: theme.primary,
+  },
+  editButtonText: {
+    color: theme.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  healthStatsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: theme.primary + '10',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: theme.primary,
+    borderStyle: 'solid',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: theme.primary,
+    marginBottom: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  statValue: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: theme.primary,
+    marginBottom: 6,
+  },
+  statCategory: {
+    fontSize: 14,
+    color: theme.text,
+    fontWeight: '600',
+  },
+  quoteContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  quoteCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 16,
+    padding: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.primary,
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quoteText: {
+    fontSize: 16,
+    color: theme.text,
+    lineHeight: 24,
+    fontStyle: 'italic',
     textAlign: 'center',
   },
 });

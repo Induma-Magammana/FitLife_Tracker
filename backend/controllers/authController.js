@@ -176,3 +176,113 @@ exports.verifyToken = (req, res) => {
     data: { userId: req.userId }
   });
 };
+
+/**
+ * Change password
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validation
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide current and new password'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    // Find user
+    const user = usersData.find(u => u.id === req.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    user.password = hashedPassword;
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error changing password',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Forgot password - Send password to email
+ */
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validation
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email address'
+      });
+    }
+
+    // Find user
+    const user = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) {
+      // Don't reveal if email exists for security
+      return res.json({
+        success: true,
+        message: 'If the email exists, password reset instructions have been sent'
+      });
+    }
+
+    // In production, you would:
+    // 1. Generate a password reset token
+    // 2. Send email with reset link
+    // For demo purposes, we'll simulate sending the password
+    
+    console.log(`Password reset requested for: ${email}`);
+    console.log(`Demo: Password for ${email} is stored securely. In production, send reset link.`);
+
+    // Note: In a real application, NEVER send passwords via email
+    // Instead, send a secure reset link that expires
+
+    res.json({
+      success: true,
+      message: 'Password reset instructions have been sent to your email'
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing password reset',
+      error: error.message
+    });
+  }
+};

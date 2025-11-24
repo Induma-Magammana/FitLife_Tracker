@@ -146,4 +146,27 @@ export const apiService = {
       throw error;
     }
   },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    try {
+      const response = await api.post('/auth/change-password', {
+        currentPassword,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
+    }
+  },
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending password reset:', error);
+      throw error;
+    }
+  },
 };

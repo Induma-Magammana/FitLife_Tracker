@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Modal,
 } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -28,6 +29,8 @@ const LoginSchema = Yup.object().shape({
 export const LoginScreen = ({ navigation }: any) => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { theme } = useTheme();
 
   const handleLogin = async (values: { email: string; password: string }) => {
@@ -41,6 +44,37 @@ export const LoginScreen = ({ navigation }: any) => {
       console.error('Login error:', error);
       const errorMessage = error?.response?.data?.message || 'Login failed. Please try again.';
       Alert.alert('Login Error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail || !forgotPasswordEmail.includes('@')) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await apiService.forgotPassword(forgotPasswordEmail);
+      
+      Alert.alert(
+        'Success',
+        'Password reset instructions have been sent to your email address.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowForgotPassword(false);
+              setForgotPasswordEmail('');
+            }
+          }
+        ]
+      );
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to send reset email';
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -109,6 +143,13 @@ export const LoginScreen = ({ navigation }: any) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  style={styles.forgotPasswordButton}
+                  onPress={() => setShowForgotPassword(true)}
+                >
+                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                   style={styles.linkButton}
                   onPress={() => navigation.navigate('Register')}
                 >
@@ -121,6 +162,61 @@ export const LoginScreen = ({ navigation }: any) => {
           </Formik>
         </View>
       </ScrollView>
+
+      {/* Forgot Password Modal */}
+      <Modal
+        visible={showForgotPassword}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowForgotPassword(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Forgot Password</Text>
+            </View>
+
+            <View style={styles.modalBody}>
+              <Text style={styles.modalDescription}>
+                Enter your email address and we'll send you instructions to reset your password.
+              </Text>
+
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={theme.textSecondary}
+                value={forgotPasswordEmail}
+                onChangeText={setForgotPasswordEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setShowForgotPassword(false);
+                  setForgotPasswordEmail('');
+                }}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSubmitButton}
+                onPress={handleForgotPassword}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalSubmitText}>Send Reset Link</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -184,6 +280,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  forgotPasswordButton: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    color: theme.primary,
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
   linkButton: {
     marginTop: 16,
     alignItems: 'center',
@@ -191,5 +296,72 @@ const createStyles = (theme: any) => StyleSheet.create({
   linkText: {
     color: theme.primary,
     fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: theme.background,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.text,
+    textAlign: 'center',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.border,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    color: theme.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSubmitButton: {
+    flex: 1,
+    backgroundColor: theme.primary,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalSubmitText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

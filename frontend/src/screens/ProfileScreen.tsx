@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logout, setUser } from '../store/slices/authSlice';
 import { StorageService } from '../services/storageService';
+import { apiService } from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 
 export const ProfileScreen = () => {
@@ -35,6 +36,12 @@ export const ProfileScreen = () => {
   const [editedEmail, setEditedEmail] = useState(user?.email || '');
   const [editedPhone, setEditedPhone] = useState('');
   const [editedBio, setEditedBio] = useState('');
+
+  // Password change modal state
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Notification settings states
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -116,6 +123,37 @@ export const ProfileScreen = () => {
     setEditModalVisible(false);
   };
 
+  const handleChangePassword = async () => {
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all password fields');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'New password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+
+    try {
+      await apiService.changePassword(currentPassword, newPassword);
+      
+      Alert.alert('Success', 'Password changed successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordModalVisible(false);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to change password';
+      Alert.alert('Error', errorMessage);
+    }
+  };
+
   const styles = createStyles(theme);
 
   return (
@@ -138,6 +176,11 @@ export const ProfileScreen = () => {
         
         <TouchableOpacity style={styles.menuItem} onPress={() => setEditModalVisible(true)}>
           <Text style={styles.menuItemText}>Edit Profile</Text>
+          <Text style={styles.menuItemIcon}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => setPasswordModalVisible(true)}>
+          <Text style={styles.menuItemText}>Change Password</Text>
           <Text style={styles.menuItemIcon}>›</Text>
         </TouchableOpacity>
 
@@ -278,6 +321,85 @@ export const ProfileScreen = () => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
                   <Text style={styles.saveButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal
+        visible={passwordModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPasswordModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Change Password</Text>
+              </View>
+
+              <View style={styles.modalBody}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Current Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={currentPassword}
+                    onChangeText={setCurrentPassword}
+                    placeholder="Enter current password"
+                    placeholderTextColor={theme.textSecondary}
+                    secureTextEntry
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>New Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="Enter new password (min 6 characters)"
+                    placeholderTextColor={theme.textSecondary}
+                    secureTextEntry
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Confirm New Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Re-enter new password"
+                    placeholderTextColor={theme.textSecondary}
+                    secureTextEntry
+                  />
+                </View>
+
+                <View style={styles.noteText}>
+                  <Text style={styles.settingDescription}>
+                    💡 Password must be at least 6 characters long
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.modalFooter}>
+                <TouchableOpacity 
+                  style={styles.cancelButton} 
+                  onPress={() => {
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setPasswordModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+                  <Text style={styles.saveButtonText}>Change Password</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
