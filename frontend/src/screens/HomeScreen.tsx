@@ -12,6 +12,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setExercises, setLoading, setError } from '../store/slices/exercisesSlice';
 import { apiService } from '../services/apiService';
@@ -141,45 +142,46 @@ export const HomeScreen = ({ navigation }: any) => {
   const { date, time } = formatDateTime();
 
   return (
-    <View style={styles.container}>
-      {/* Date and Time Header */}
-      <View style={styles.dateTimeContainer}>
-        <Text style={styles.dateText}>{date}</Text>
-        <Text style={styles.timeText}>{time}</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Date and Time Header */}
+        <View style={styles.dateTimeContainer}>
+          <Text style={styles.dateText}>{date}</Text>
+          <Text style={styles.timeText}>{time}</Text>
+        </View>
 
-      {/* Quick Action Buttons */}
-      <View style={styles.quickActionsContainer}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => setWaterModalVisible(true)}
+        {/* Welcome Section */}
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Hello, {user?.firstName || 'User'}!</Text>
+          <Text style={styles.headerSubtitle}>Ready for your workout?</Text>
+        </View>
+
+        {/* Quick Action Buttons */}
+        <View style={styles.quickActionsContainer}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setWaterModalVisible(true)}
+          >
+            <Text style={styles.actionIcon}>💧</Text>
+            <Text style={styles.actionText}>Water Tracker</Text>
+            <Text style={styles.actionSubtext}>{waterIntake}/{waterGoal} glasses</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setExercisesModalVisible(true)}
+          >
+            <Text style={styles.actionIcon}>🏋️</Text>
+            <Text style={styles.actionText}>Exercises</Text>
+            <Text style={styles.actionSubtext}>{exercises.length} available</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Meditation Steps */}
+        <ScrollView 
+          style={styles.meditationContainer}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.actionIcon}>💧</Text>
-          <Text style={styles.actionText}>Water Tracker</Text>
-          <Text style={styles.actionSubtext}>{waterIntake}/{waterGoal} glasses</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => setExercisesModalVisible(true)}
-        >
-          <Text style={styles.actionIcon}>🏋️</Text>
-          <Text style={styles.actionText}>Exercises</Text>
-          <Text style={styles.actionSubtext}>{exercises.length} available</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Welcome Section */}
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Hello, {user?.firstName || 'User'}!</Text>
-        <Text style={styles.headerSubtitle}>Ready for your workout?</Text>
-      </View>
-
-      {/* Meditation Steps */}
-      <ScrollView 
-        style={styles.meditationContainer}
-        showsVerticalScrollIndicator={false}
-      >
         <View style={styles.meditationCard}>
           <Text style={styles.meditationTitle}>🧘 Daily Meditation Guide</Text>
           <Text style={styles.meditationSubtitle}>Take a moment to center yourself</Text>
@@ -259,7 +261,7 @@ export const HomeScreen = ({ navigation }: any) => {
           <View style={styles.meditationTip}>
             <Text style={styles.tipIcon}>💡</Text>
             <Text style={styles.meditationTipText}>
-              Start with 5 minutes daily and gradually increase. Consistency is more important than duration.
+              Start with 5 minutes daily and gradually increase.{'\n'}Consistency is more important than duration.
             </Text>
           </View>
         </View>
@@ -407,11 +409,16 @@ export const HomeScreen = ({ navigation }: any) => {
           </View>
         </View>
       </Modal>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const createStyles = (theme: any) => StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.background,
+  },
   container: {
     flex: 1,
     backgroundColor: theme.background,
@@ -427,9 +434,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 24,
     alignItems: 'center',
-    marginHorizontal: 12,
-    marginTop: 12,
-    marginBottom: 8,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 0,
     borderRadius: 16,
   },
   dateText: {
@@ -446,7 +453,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   quickActionsContainer: {
     flexDirection: 'row',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     gap: 12,
   },
   actionButton: {
@@ -477,7 +485,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 10,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   greeting: {
     fontSize: 28,
