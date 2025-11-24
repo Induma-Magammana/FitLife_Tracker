@@ -1,0 +1,142 @@
+[
+  {
+    "id": "1",
+    "category": "workout",
+    "title": "Warm Up Properly",
+    "content": "Always spend 5-10 minutes warming up before your workout. This increases blood flow to your muscles and reduces the risk of injury.",
+    "icon": "🔥"
+  },
+  {
+    "id": "2",
+    "category": "workout",
+    "title": "Focus on Form",
+    "content": "Proper form is more important than the amount of weight you lift. Poor form can lead to injuries and reduced effectiveness.",
+    "icon": "✅"
+  },
+  {
+    "id": "3",
+    "category": "nutrition",
+    "title": "Stay Hydrated",
+    "content": "Drink water before, during, and after your workout. Aim for at least 8 glasses of water per day, more if you're exercising intensely.",
+    "icon": "💧"
+  },
+  {
+    "id": "4",
+    "category": "nutrition",
+    "title": "Post-Workout Nutrition",
+    "content": "Consume protein and carbohydrates within 30-60 minutes after your workout to aid muscle recovery and replenish energy stores.",
+    "icon": "🍗"
+  },
+  {
+    "id": "5",
+    "category": "recovery",
+    "title": "Get Enough Sleep",
+    "content": "Aim for 7-9 hours of quality sleep each night. Sleep is when your body repairs and builds muscle tissue.",
+    "icon": "😴"
+  },
+  {
+    "id": "6",
+    "category": "recovery",
+    "title": "Rest Days Are Important",
+    "content": "Don't skip rest days. Your muscles need time to recover and grow stronger. Aim for 1-2 rest days per week.",
+    "icon": "🛌"
+  },
+  {
+    "id": "7",
+    "category": "workout",
+    "title": "Progressive Overload",
+    "content": "Gradually increase the weight, reps, or intensity of your workouts over time to continue making progress.",
+    "icon": "📈"
+  },
+  {
+    "id": "8",
+    "category": "workout",
+    "title": "Mix Up Your Routine",
+    "content": "Vary your exercises every 4-6 weeks to prevent plateaus and keep your workouts interesting.",
+    "icon": "🔄"
+  },
+  {
+    "id": "9",
+    "category": "nutrition",
+    "title": "Eat Protein-Rich Foods",
+    "content": "Include lean proteins in every meal. Aim for 0.8-1g of protein per pound of body weight daily for muscle building.",
+    "icon": "🥩"
+  },
+  {
+    "id": "10",
+    "category": "nutrition",
+    "title": "Don't Skip Breakfast",
+    "content": "Eating a healthy breakfast jumpstarts your metabolism and provides energy for your day and workouts.",
+    "icon": "🍳"
+  },
+  {
+    "id": "11",
+    "category": "mindset",
+    "title": "Set Realistic Goals",
+    "content": "Set specific, measurable, achievable, relevant, and time-bound (SMART) fitness goals to stay motivated.",
+    "icon": "🎯"
+  },
+  {
+    "id": "12",
+    "category": "mindset",
+    "title": "Track Your Progress",
+    "content": "Keep a workout journal or use an app to track your exercises, weights, and progress over time.",
+    "icon": "📊"
+  },
+  {
+    "id": "13",
+    "category": "workout",
+    "title": "Cool Down After Exercise",
+    "content": "Spend 5-10 minutes cooling down with light cardio and stretching to help your body recover.",
+    "icon": "🧘"
+  },
+  {
+    "id": "14",
+    "category": "recovery",
+    "title": "Listen to Your Body",
+    "content": "If you feel pain (not just discomfort), stop and rest. Pushing through pain can lead to serious injury.",
+    "icon": "👂"
+  },
+  {
+    "id": "15",
+    "category": "mindset",
+    "title": "Find a Workout Buddy",
+    "content": "Working out with a friend can increase motivation, accountability, and make exercise more enjoyable.",
+    "icon": "👥"
+  },
+  {
+    "id": "16",
+    "category": "nutrition",
+    "title": "Avoid Processed Foods",
+    "content": "Focus on whole, unprocessed foods for better nutrition and sustained energy levels.",
+    "icon": "🥗"
+  },
+  {
+    "id": "17",
+    "category": "workout",
+    "title": "Include Compound Exercises",
+    "content": "Focus on compound movements like squats, deadlifts, and bench press that work multiple muscle groups.",
+    "icon": "💪"
+  },
+  {
+    "id": "18",
+    "category": "recovery",
+    "title": "Stretch Regularly",
+    "content": "Incorporate stretching into your routine to improve flexibility and reduce muscle soreness.",
+    "icon": "🤸"
+  },
+  {
+    "id": "19",
+    "category": "mindset",
+    "title": "Stay Consistent",
+    "content": "Consistency is key to seeing results. Aim to exercise at least 3-4 times per week.",
+    "icon": "🔑"
+  },
+  {
+    "id": "20",
+    "category": "mindset",
+    "title": "Celebrate Small Wins",
+    "content": "Acknowledge and celebrate your progress, no matter how small. Every step forward counts!",
+    "icon": "🎉"
+  }
+]

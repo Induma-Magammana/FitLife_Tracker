@@ -1,0 +1,3 @@
+// Placeholder icon - Replace with actual icon
+// This file is just for reference
+// Actual icons should be placed in the assets folder

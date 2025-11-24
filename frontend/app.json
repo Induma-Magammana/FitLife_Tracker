@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "FitLife Tracker",
+    "slug": "fitlife-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fitlifetracker.app"
+    },
+    "android": {
+      "package": "com.fitlifetracker.app"
+    },
+    "sdkVersion": "54.0.0",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
+  }
+}
