@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { logout } from '../store/slices/authSlice';
+import { logout, setUser } from '../store/slices/authSlice';
 import { StorageService } from '../services/storageService';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -40,6 +40,15 @@ export const ProfileScreen = () => {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
+
+  // Update form values when user data changes
+  useEffect(() => {
+    if (user) {
+      setEditedFirstName(user.firstName || '');
+      setEditedLastName(user.lastName || '');
+      setEditedEmail(user.email || '');
+    }
+  }, [user]);
 
   // Privacy settings states
   const [profileVisibility, setProfileVisibility] = useState('public');
@@ -70,10 +79,31 @@ export const ProfileScreen = () => {
     );
   };
 
-  const handleSaveProfile = () => {
-    // TODO: Update user profile in backend
-    Alert.alert('Success', 'Profile updated successfully!');
-    setEditModalVisible(false);
+  const handleSaveProfile = async () => {
+    try {
+      // Create updated user object
+      const updatedUser = {
+        ...user,
+        firstName: editedFirstName,
+        lastName: editedLastName,
+        email: editedEmail,
+      };
+
+      // Update Redux store
+      dispatch(setUser(updatedUser));
+
+      // Save to AsyncStorage
+      await StorageService.saveUserData(updatedUser);
+
+      // TODO: Update user profile in backend
+      // await apiService.updateProfile(updatedUser);
+
+      Alert.alert('Success', 'Profile updated successfully!');
+      setEditModalVisible(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      console.error('Error updating profile:', error);
+    }
   };
 
   const handleCancelEdit = () => {
