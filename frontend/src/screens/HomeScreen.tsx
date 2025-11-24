@@ -28,9 +28,12 @@ export const HomeScreen = ({ navigation }: any) => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [waterModalVisible, setWaterModalVisible] = useState(false);
   const [exercisesModalVisible, setExercisesModalVisible] = useState(false);
+  const [calorieModalVisible, setCalorieModalVisible] = useState(false);
   const [waterIntake, setWaterIntake] = useState(0);
   const [waterGoal] = useState(8); // 8 glasses per day
   const [customWaterAmount, setCustomWaterAmount] = useState('');
+  const [foodSearch, setFoodSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     loadExercises();
@@ -91,6 +94,79 @@ export const HomeScreen = ({ navigation }: any) => {
   };
 
   const waterPercentage = (waterIntake / waterGoal) * 100;
+
+  // Food calorie database (per 100g)
+  const foodDatabase = [
+    // Vegetables
+    { name: 'Broccoli', calories: 34, type: 'Vegetable', serving: '100g' },
+    { name: 'Carrot', calories: 41, type: 'Vegetable', serving: '100g' },
+    { name: 'Spinach', calories: 23, type: 'Vegetable', serving: '100g' },
+    { name: 'Tomato', calories: 18, type: 'Vegetable', serving: '100g' },
+    { name: 'Cucumber', calories: 16, type: 'Vegetable', serving: '100g' },
+    { name: 'Bell Pepper', calories: 31, type: 'Vegetable', serving: '100g' },
+    { name: 'Lettuce', calories: 15, type: 'Vegetable', serving: '100g' },
+    { name: 'Cauliflower', calories: 25, type: 'Vegetable', serving: '100g' },
+    { name: 'Cabbage', calories: 25, type: 'Vegetable', serving: '100g' },
+    { name: 'Zucchini', calories: 17, type: 'Vegetable', serving: '100g' },
+    { name: 'Eggplant', calories: 25, type: 'Vegetable', serving: '100g' },
+    { name: 'Onion', calories: 40, type: 'Vegetable', serving: '100g' },
+    { name: 'Garlic', calories: 149, type: 'Vegetable', serving: '100g' },
+    { name: 'Mushroom', calories: 22, type: 'Vegetable', serving: '100g' },
+    { name: 'Asparagus', calories: 20, type: 'Vegetable', serving: '100g' },
+    { name: 'Green Beans', calories: 31, type: 'Vegetable', serving: '100g' },
+    { name: 'Peas', calories: 81, type: 'Vegetable', serving: '100g' },
+    { name: 'Corn', calories: 86, type: 'Vegetable', serving: '100g' },
+    { name: 'Potato', calories: 77, type: 'Vegetable', serving: '100g' },
+    { name: 'Sweet Potato', calories: 86, type: 'Vegetable', serving: '100g' },
+    { name: 'Pumpkin', calories: 26, type: 'Vegetable', serving: '100g' },
+    { name: 'Beetroot', calories: 43, type: 'Vegetable', serving: '100g' },
+    { name: 'Radish', calories: 16, type: 'Vegetable', serving: '100g' },
+    { name: 'Celery', calories: 14, type: 'Vegetable', serving: '100g' },
+    // Fruits
+    { name: 'Apple', calories: 52, type: 'Fruit', serving: '100g' },
+    { name: 'Banana', calories: 89, type: 'Fruit', serving: '100g' },
+    { name: 'Orange', calories: 47, type: 'Fruit', serving: '100g' },
+    { name: 'Strawberry', calories: 32, type: 'Fruit', serving: '100g' },
+    { name: 'Blueberry', calories: 57, type: 'Fruit', serving: '100g' },
+    { name: 'Grape', calories: 69, type: 'Fruit', serving: '100g' },
+    { name: 'Watermelon', calories: 30, type: 'Fruit', serving: '100g' },
+    { name: 'Mango', calories: 60, type: 'Fruit', serving: '100g' },
+    { name: 'Pineapple', calories: 50, type: 'Fruit', serving: '100g' },
+    { name: 'Papaya', calories: 43, type: 'Fruit', serving: '100g' },
+    { name: 'Peach', calories: 39, type: 'Fruit', serving: '100g' },
+    { name: 'Pear', calories: 57, type: 'Fruit', serving: '100g' },
+    { name: 'Cherry', calories: 63, type: 'Fruit', serving: '100g' },
+    { name: 'Kiwi', calories: 61, type: 'Fruit', serving: '100g' },
+    { name: 'Avocado', calories: 160, type: 'Fruit', serving: '100g' },
+    { name: 'Lemon', calories: 29, type: 'Fruit', serving: '100g' },
+    { name: 'Lime', calories: 30, type: 'Fruit', serving: '100g' },
+    { name: 'Grapefruit', calories: 42, type: 'Fruit', serving: '100g' },
+    { name: 'Pomegranate', calories: 83, type: 'Fruit', serving: '100g' },
+    { name: 'Raspberry', calories: 52, type: 'Fruit', serving: '100g' },
+    { name: 'Blackberry', calories: 43, type: 'Fruit', serving: '100g' },
+    { name: 'Cranberry', calories: 46, type: 'Fruit', serving: '100g' },
+    { name: 'Plum', calories: 46, type: 'Fruit', serving: '100g' },
+    { name: 'Apricot', calories: 48, type: 'Fruit', serving: '100g' },
+    { name: 'Cantaloupe', calories: 34, type: 'Fruit', serving: '100g' },
+    { name: 'Honeydew', calories: 36, type: 'Fruit', serving: '100g' },
+    { name: 'Dragon Fruit', calories: 60, type: 'Fruit', serving: '100g' },
+    { name: 'Passion Fruit', calories: 97, type: 'Fruit', serving: '100g' },
+    { name: 'Coconut', calories: 354, type: 'Fruit', serving: '100g' },
+    { name: 'Date', calories: 277, type: 'Fruit', serving: '100g' },
+    { name: 'Fig', calories: 74, type: 'Fruit', serving: '100g' },
+  ];
+
+  const handleFoodSearch = (text: string) => {
+    setFoodSearch(text);
+    if (text.trim().length > 0) {
+      const filtered = foodDatabase.filter(food => 
+        food.name.toLowerCase().includes(text.toLowerCase())
+      );
+      setSearchResults(filtered);
+    } else {
+      setSearchResults([]);
+    }
+  };
 
   const renderExerciseCard = ({ item }: { item: Exercise }) => (
     <TouchableOpacity
@@ -174,6 +250,17 @@ export const HomeScreen = ({ navigation }: any) => {
             <Text style={styles.actionIcon}>🏋️</Text>
             <Text style={styles.actionText}>Exercises</Text>
             <Text style={styles.actionSubtext}>{exercises.length} available</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.quickActionsContainer}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.calorieButton]}
+            onPress={() => setCalorieModalVisible(true)}
+          >
+            <Text style={styles.actionIcon}>🍽️</Text>
+            <Text style={styles.actionText}>Calorie Guide</Text>
+            <Text style={styles.actionSubtext}>Daily recommendations</Text>
           </TouchableOpacity>
         </View>
 
@@ -406,6 +493,192 @@ export const HomeScreen = ({ navigation }: any) => {
               keyExtractor={(item, index) => `${item.name}-${index}`}
               showsVerticalScrollIndicator={false}
             />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Calorie Recommendations Modal */}
+      <Modal
+        visible={calorieModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setCalorieModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🍽️ Daily Calorie Guide</Text>
+              <TouchableOpacity onPress={() => setCalorieModalVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.calorieContainer}>
+                <Text style={styles.calorieIntro}>
+                  Your daily calorie needs depend on your age, gender, weight, height, and activity level.
+                </Text>
+
+                {/* Food Calorie Lookup */}
+                <View style={styles.calorieSection}>
+                  <Text style={styles.calorieSectionTitle}>🔍 Food Calorie Lookup</Text>
+                  <Text style={styles.foodSearchSubtitle}>
+                    Search for vegetables and fruits to see their calorie content
+                  </Text>
+                  
+                  <View style={styles.searchContainer}>
+                    <TextInput
+                      style={styles.foodSearchInput}
+                      value={foodSearch}
+                      onChangeText={handleFoodSearch}
+                      placeholder="Search for a fruit or vegetable..."
+                      placeholderTextColor={theme.textSecondary}
+                    />
+                    {foodSearch.length > 0 && (
+                      <TouchableOpacity 
+                        onPress={() => {
+                          setFoodSearch('');
+                          setSearchResults([]);
+                        }}
+                        style={styles.clearSearchButton}
+                      >
+                        <Text style={styles.clearSearchText}>✕</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {searchResults.length > 0 && (
+                    <View style={styles.searchResultsContainer}>
+                      {searchResults.map((food, index) => (
+                        <View key={index} style={styles.foodResultCard}>
+                          <View style={styles.foodResultHeader}>
+                            <Text style={styles.foodResultName}>{food.name}</Text>
+                            <Text style={styles.foodResultType}>{food.type}</Text>
+                          </View>
+                          <View style={styles.foodResultCalories}>
+                            <Text style={styles.calorieNumber}>{food.calories}</Text>
+                            <Text style={styles.calorieUnit}>calories</Text>
+                          </View>
+                          <Text style={styles.foodResultServing}>per {food.serving}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {foodSearch.length > 0 && searchResults.length === 0 && (
+                    <View style={styles.noResultsContainer}>
+                      <Text style={styles.noResultsText}>
+                        No results found for "{foodSearch}"
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* General Guidelines */}
+                <View style={styles.calorieSection}>
+                  <Text style={styles.calorieSectionTitle}>📊 General Guidelines</Text>
+                  
+                  <View style={styles.calorieCard}>
+                    <Text style={styles.calorieCardTitle}>👨 Men</Text>
+                    <View style={styles.calorieRow}>
+                      <Text style={styles.calorieLabel}>Sedentary:</Text>
+                      <Text style={styles.calorieValue}>2,000-2,400 cal/day</Text>
+                    </View>
+                    <View style={styles.calorieRow}>
+                      <Text style={styles.calorieLabel}>Moderate:</Text>
+                      <Text style={styles.calorieValue}>2,400-2,800 cal/day</Text>
+                    </View>
+                    <View style={styles.calorieRow}>
+                      <Text style={styles.calorieLabel}>Active:</Text>
+                      <Text style={styles.calorieValue}>2,800-3,200 cal/day</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.calorieCard}>
+                    <Text style={styles.calorieCardTitle}>👩 Women</Text>
+                    <View style={styles.calorieRow}>
+                      <Text style={styles.calorieLabel}>Sedentary:</Text>
+                      <Text style={styles.calorieValue}>1,600-2,000 cal/day</Text>
+                    </View>
+                    <View style={styles.calorieRow}>
+                      <Text style={styles.calorieLabel}>Moderate:</Text>
+                      <Text style={styles.calorieValue}>2,000-2,200 cal/day</Text>
+                    </View>
+                    <View style={styles.calorieRow}>
+                      <Text style={styles.calorieLabel}>Active:</Text>
+                      <Text style={styles.calorieValue}>2,200-2,400 cal/day</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Goals */}
+                <View style={styles.calorieSection}>
+                  <Text style={styles.calorieSectionTitle}>🎯 Based on Goals</Text>
+                  
+                  <View style={styles.goalCard}>
+                    <Text style={styles.goalIcon}>⬇️</Text>
+                    <Text style={styles.goalTitle}>Weight Loss</Text>
+                    <Text style={styles.goalDescription}>
+                      Reduce daily intake by 500-750 calories for safe 1-1.5 lbs/week loss
+                    </Text>
+                  </View>
+
+                  <View style={styles.goalCard}>
+                    <Text style={styles.goalIcon}>➡️</Text>
+                    <Text style={styles.goalTitle}>Maintenance</Text>
+                    <Text style={styles.goalDescription}>
+                      Match your calorie intake to your daily energy expenditure
+                    </Text>
+                  </View>
+
+                  <View style={styles.goalCard}>
+                    <Text style={styles.goalIcon}>⬆️</Text>
+                    <Text style={styles.goalTitle}>Muscle Gain</Text>
+                    <Text style={styles.goalDescription}>
+                      Increase daily intake by 300-500 calories with focus on protein
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Macronutrient Breakdown */}
+                <View style={styles.calorieSection}>
+                  <Text style={styles.calorieSectionTitle}>🥗 Macronutrient Balance</Text>
+                  
+                  <View style={styles.macroCard}>
+                    <View style={styles.macroItem}>
+                      <Text style={styles.macroPercentage}>45-65%</Text>
+                      <Text style={styles.macroLabel}>Carbohydrates</Text>
+                      <Text style={styles.macroDetail}>Primary energy source</Text>
+                    </View>
+                    <View style={styles.macroItem}>
+                      <Text style={styles.macroPercentage}>10-35%</Text>
+                      <Text style={styles.macroLabel}>Protein</Text>
+                      <Text style={styles.macroDetail}>Muscle repair & growth</Text>
+                    </View>
+                    <View style={styles.macroItem}>
+                      <Text style={styles.macroPercentage}>20-35%</Text>
+                      <Text style={styles.macroLabel}>Healthy Fats</Text>
+                      <Text style={styles.macroDetail}>Hormone production</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Tips */}
+                <View style={styles.meditationTip}>
+                  <Text style={styles.tipIcon}>💡</Text>
+                  <View style={styles.tipContent}>
+                    <Text style={styles.meditationTipText}>
+                      <Text style={styles.tipBold}>Pro Tips:{'\n'}</Text>
+                      • Track your food intake for accuracy{'\n'}
+                      • Eat protein with every meal{'\n'}
+                      • Stay hydrated throughout the day{'\n'}
+                      • Don't skip meals{'\n'}
+                      • Adjust based on your progress
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -880,5 +1153,196 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'capitalize',
+  },
+  calorieButton: {
+    width: '100%',
+  },
+  calorieContainer: {
+    padding: 20,
+  },
+  calorieIntro: {
+    fontSize: 15,
+    color: theme.textSecondary,
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  calorieSection: {
+    marginBottom: 24,
+  },
+  calorieSectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.text,
+    marginBottom: 16,
+  },
+  calorieCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  calorieCardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 12,
+  },
+  calorieRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  calorieLabel: {
+    fontSize: 15,
+    color: theme.textSecondary,
+  },
+  calorieValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.primary,
+  },
+  goalCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  goalIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  goalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 8,
+  },
+  goalDescription: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  macroCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    padding: 16,
+  },
+  macroItem: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  macroPercentage: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.primary,
+    marginBottom: 4,
+  },
+  macroLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+    marginBottom: 4,
+  },
+  macroDetail: {
+    fontSize: 13,
+    color: theme.textSecondary,
+  },
+  tipContent: {
+    flex: 1,
+  },
+  tipBold: {
+    fontWeight: 'bold',
+    color: theme.text,
+  },
+  foodSearchSubtitle: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    marginBottom: 16,
+  },
+  searchContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  foodSearchInput: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: theme.text,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  clearSearchButton: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 4,
+  },
+  clearSearchText: {
+    fontSize: 18,
+    color: theme.textSecondary,
+    fontWeight: 'bold',
+  },
+  searchResultsContainer: {
+    marginTop: 8,
+  },
+  foodResultCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.secondary,
+  },
+  foodResultHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  foodResultName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+  },
+  foodResultType: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.secondary,
+    textTransform: 'uppercase',
+    backgroundColor: theme.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  foodResultCalories: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 4,
+  },
+  calorieNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: theme.primary,
+    marginRight: 8,
+  },
+  calorieUnit: {
+    fontSize: 16,
+    color: theme.textSecondary,
+  },
+  foodResultServing: {
+    fontSize: 13,
+    color: theme.textSecondary,
+  },
+  noResultsContainer: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    fontSize: 15,
+    color: theme.textSecondary,
+    textAlign: 'center',
   },
 });

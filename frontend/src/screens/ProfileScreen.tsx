@@ -133,21 +133,6 @@ export const ProfileScreen = () => {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{favourites.length}</Text>
-          <Text style={styles.statLabel}>Favourites</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Workouts</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Days Active</Text>
-        </View>
-      </View>
-
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
         
