@@ -10,12 +10,13 @@ import { login } from './src/store/slices/authSlice';
 import { setFavourites } from './src/store/slices/favouritesSlice';
 import { StorageService } from './src/services/storageService';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import { lightTheme } from './src/constants/theme';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 
 const AppContent = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   useEffect(() => {
     checkAuthState();
@@ -43,8 +44,8 @@ const AppContent = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={lightTheme.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -60,7 +61,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <Provider store={store}>
-        <AppContent />
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
       </Provider>
     </SafeAreaProvider>
   );
@@ -71,6 +74,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: lightTheme.background,
   },
 });
