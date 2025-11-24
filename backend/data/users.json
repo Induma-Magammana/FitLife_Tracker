@@ -4,7 +4,7 @@
     "firstName": "John",
     "lastName": "Doe",
     "email": "john@example.com",
-    "password": "$2a$10$XQqy4qz5J0z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5",
+    "password": "$2a$10$Ni.ohKjqNWX4ZTdjGlJ2zO7f4sB7pR6Jz1d3z239ZXTJoGsNYwlAK",
     "createdAt": "2025-01-01T00:00:00.000Z"
   },
   {
@@ -12,7 +12,7 @@
     "firstName": "Jane",
     "lastName": "Smith",
     "email": "jane@example.com",
-    "password": "$2a$10$XQqy4qz5J0z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5",
+    "password": "$2a$10$Ni.ohKjqNWX4ZTdjGlJ2zO7f4sB7pR6Jz1d3z239ZXTJoGsNYwlAK",
     "createdAt": "2025-01-02T00:00:00.000Z"
   }
 ]

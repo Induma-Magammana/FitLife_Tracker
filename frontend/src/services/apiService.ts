@@ -63,11 +63,11 @@ export const apiService = {
   async login(email: string, password: string) {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token, user } = response.data;
+      const { user, token } = response.data.data;
       
       // Store auth data
-      await StorageService.setAuthToken(token);
-      await StorageService.setUserData(user);
+      await StorageService.saveAuthToken(token);
+      await StorageService.saveUserData(user);
       
       return { user, token };
     } catch (error) {
@@ -84,11 +84,11 @@ export const apiService = {
         email,
         password,
       });
-      const { token, user } = response.data;
+      const { user, token } = response.data.data;
       
       // Store auth data
-      await StorageService.setAuthToken(token);
-      await StorageService.setUserData(user);
+      await StorageService.saveAuthToken(token);
+      await StorageService.saveUserData(user);
       
       return { user, token };
     } catch (error) {

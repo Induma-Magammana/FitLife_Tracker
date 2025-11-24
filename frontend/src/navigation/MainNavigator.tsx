@@ -6,7 +6,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { DetailsScreen } from '../screens/DetailsScreen';
 import { FavouritesScreen } from '../screens/FavouritesScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { lightTheme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -18,7 +18,7 @@ const HomeStack = () => {
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
-        options={{ title: 'Home' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Details"
@@ -29,13 +29,13 @@ const HomeStack = () => {
   );
 };
 
-const FavouritesStack = () => {
+const WorkoutsStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="FavouritesMain"
         component={FavouritesScreen}
-        options={{ title: 'Favourites' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Details"
@@ -48,16 +48,17 @@ const FavouritesStack = () => {
 
 export const MainNavigator = () => {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: lightTheme.primary,
-        tabBarInactiveTintColor: lightTheme.textSecondary,
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
-          backgroundColor: lightTheme.cardBackground,
-          borderTopColor: lightTheme.border,
+          backgroundColor: theme.cardBackground,
+          borderTopColor: theme.border,
           paddingBottom: insets.bottom + 5,
           paddingTop: 8,
           height: 60 + insets.bottom,
@@ -74,10 +75,10 @@ export const MainNavigator = () => {
       />
       <Tab.Screen
         name="Favourites"
-        component={FavouritesStack}
+        component={WorkoutsStack}
         options={{
-          tabBarLabel: 'Favourites',
-          tabBarIcon: ({ color }) => <TabIcon icon="❤️" color={color} />,
+          tabBarLabel: 'Workouts',
+          tabBarIcon: ({ color }) => <TabIcon icon="💪" color={color} />,
         }}
       />
       <Tab.Screen
@@ -86,15 +87,6 @@ export const MainNavigator = () => {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color }) => <TabIcon icon="👤" color={color} />,
-          headerShown: true,
-          title: 'Profile',
-          headerStyle: {
-            backgroundColor: lightTheme.primary,
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
         }}
       />
     </Tab.Navigator>

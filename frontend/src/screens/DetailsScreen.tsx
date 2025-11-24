@@ -9,13 +9,14 @@ import {
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { addFavourite, removeFavourite } from '../store/slices/favouritesSlice';
 import { StorageService } from '../services/storageService';
-import { lightTheme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { Exercise } from '../store/slices/exercisesSlice';
 
 export const DetailsScreen = ({ route, navigation }: any) => {
   const { exercise } = route.params as { exercise: Exercise };
   const dispatch = useAppDispatch();
   const favourites = useAppSelector((state) => state.favourites.favourites);
+  const { theme } = useTheme();
   
   const [isFavourite, setIsFavourite] = useState(false);
 
@@ -35,6 +36,8 @@ export const DetailsScreen = ({ route, navigation }: any) => {
       await StorageService.saveFavourites(updatedFavourites);
     }
   };
+
+  const styles = createStyles(theme);
 
   return (
     <ScrollView style={styles.container}>
@@ -82,28 +85,28 @@ export const DetailsScreen = ({ route, navigation }: any) => {
         onPress={handleToggleFavourite}
       >
         <Text style={styles.favouriteButtonText}>
-          {isFavourite ? '❤️ Remove from Favourites' : '🤍 Add to Favourites'}
+          {isFavourite ? 'Remove from Workouts' : 'Add to Workouts'}
         </Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: lightTheme.background,
+    backgroundColor: theme.background,
   },
   header: {
     alignItems: 'center',
     padding: 24,
-    backgroundColor: lightTheme.surface,
+    backgroundColor: theme.surface,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: lightTheme.primary,
+    backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -114,24 +117,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: lightTheme.text,
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: lightTheme.textSecondary,
+    color: theme.textSecondary,
     textTransform: 'capitalize',
   },
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: lightTheme.border,
+    borderBottomColor: theme.border,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: lightTheme.text,
+    color: theme.text,
     marginBottom: 12,
   },
   detailRow: {
@@ -141,39 +144,39 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 16,
-    color: lightTheme.textSecondary,
+    color: theme.textSecondary,
   },
   detailValue: {
     fontSize: 16,
     fontWeight: '500',
-    color: lightTheme.text,
+    color: theme.text,
     textTransform: 'capitalize',
   },
   instructions: {
     fontSize: 16,
     lineHeight: 24,
-    color: lightTheme.text,
+    color: theme.text,
   },
   tipContainer: {
-    backgroundColor: lightTheme.surface,
+    backgroundColor: theme.surface,
     padding: 16,
     borderRadius: 8,
   },
   tipText: {
     fontSize: 14,
-    color: lightTheme.text,
+    color: theme.text,
     marginBottom: 8,
     lineHeight: 20,
   },
   favouriteButton: {
-    backgroundColor: lightTheme.primary,
+    backgroundColor: theme.primary,
     margin: 20,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   favouriteButtonActive: {
-    backgroundColor: lightTheme.error,
+    backgroundColor: theme.error,
   },
   favouriteButtonText: {
     color: '#FFFFFF',

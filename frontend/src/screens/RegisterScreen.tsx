@@ -9,14 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { useAppDispatch } from '../store/hooks';
 import { login } from '../store/slices/authSlice';
 import { apiService } from '../services/apiService';
-import { StorageService } from '../services/storageService';
-import { lightTheme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const RegisterSchema = Yup.object().shape({
   firstName: Yup.string()
@@ -37,12 +37,14 @@ const RegisterSchema = Yup.object().shape({
 export const RegisterScreen = ({ navigation }: any) => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
 
   const handleRegister = async (values: {
     firstName: string;
     lastName: string;
     email: string;
     password: string;
+    confirmPassword: string;
   }) => {
     setLoading(true);
     try {
@@ -53,19 +55,18 @@ export const RegisterScreen = ({ navigation }: any) => {
         values.password
       );
 
-      // Save to AsyncStorage
-      await StorageService.saveAuthToken(response.token);
-      await StorageService.saveUserData(response.user);
-
-      // Update Redux store
+      // apiService already saves to AsyncStorage, just update Redux store
       dispatch(login(response));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      alert('Registration failed. Please try again.');
+      const errorMessage = error?.response?.data?.message || 'Registration failed. Please try again.';
+      Alert.alert('Registration Error', errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  const styles = createStyles(theme);
 
   return (
     <KeyboardAvoidingView
@@ -94,7 +95,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.input}
                     placeholder="First Name"
-                    placeholderTextColor={lightTheme.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     onChangeText={handleChange('firstName')}
                     onBlur={handleBlur('firstName')}
                     value={values.firstName}
@@ -108,7 +109,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Last Name"
-                    placeholderTextColor={lightTheme.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     onChangeText={handleChange('lastName')}
                     onBlur={handleBlur('lastName')}
                     value={values.lastName}
@@ -122,7 +123,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Email"
-                    placeholderTextColor={lightTheme.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     onChangeText={handleChange('email')}
                     onBlur={handleBlur('email')}
                     value={values.email}
@@ -138,7 +139,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Password"
-                    placeholderTextColor={lightTheme.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     onChangeText={handleChange('password')}
                     onBlur={handleBlur('password')}
                     value={values.password}
@@ -153,7 +154,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Confirm Password"
-                    placeholderTextColor={lightTheme.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     onChangeText={handleChange('confirmPassword')}
                     onBlur={handleBlur('confirmPassword')}
                     value={values.confirmPassword}
@@ -193,10 +194,10 @@ export const RegisterScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: lightTheme.background,
+    backgroundColor: theme.background,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -210,13 +211,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: lightTheme.primary,
+    color: theme.primary,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: lightTheme.textSecondary,
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -227,22 +228,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   input: {
-    backgroundColor: lightTheme.surface,
+    backgroundColor: theme.surface,
     borderRadius: 8,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: lightTheme.border,
-    color: lightTheme.text,
+    borderColor: theme.border,
+    color: theme.text,
   },
   error: {
-    color: lightTheme.error,
+    color: theme.error,
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
   },
   button: {
-    backgroundColor: lightTheme.primary,
+    backgroundColor: theme.primary,
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: lightTheme.primary,
+    color: theme.primary,
     fontSize: 14,
   },
 });

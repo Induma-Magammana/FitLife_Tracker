@@ -9,12 +9,13 @@ import {
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setFavourites } from '../store/slices/favouritesSlice';
 import { StorageService } from '../services/storageService';
-import { lightTheme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { Exercise } from '../store/slices/exercisesSlice';
 
 export const FavouritesScreen = ({ navigation }: any) => {
   const dispatch = useAppDispatch();
   const favourites = useAppSelector((state) => state.favourites.favourites);
+  const { theme } = useTheme();
 
   useEffect(() => {
     loadFavourites();
@@ -29,6 +30,8 @@ export const FavouritesScreen = ({ navigation }: any) => {
     }
   };
 
+  const styles = createStyles(theme);
+
   const renderExerciseCard = ({ item }: { item: Exercise }) => (
     <TouchableOpacity
       style={styles.card}
@@ -42,7 +45,6 @@ export const FavouritesScreen = ({ navigation }: any) => {
           <Text style={styles.cardTitle}>{item.name}</Text>
           <Text style={styles.cardSubtitle}>{item.type}</Text>
         </View>
-        <Text style={styles.heartIcon}>❤️</Text>
       </View>
       <View style={styles.cardFooter}>
         <View style={styles.badge}>
@@ -58,10 +60,10 @@ export const FavouritesScreen = ({ navigation }: any) => {
   if (favourites.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>💔</Text>
-        <Text style={styles.emptyTitle}>No Favourites Yet</Text>
+        <Text style={styles.emptyIcon}>🏋️</Text>
+        <Text style={styles.emptyTitle}>No Workouts Yet</Text>
         <Text style={styles.emptyText}>
-          Start adding exercises to your favourites to see them here!
+          Start adding exercises to your workouts to see them here!
         </Text>
         <TouchableOpacity
           style={styles.browseButton}
@@ -76,7 +78,7 @@ export const FavouritesScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Favourites</Text>
+        <Text style={styles.headerTitle}>My Workouts</Text>
         <Text style={styles.headerSubtitle}>
           {favourites.length} {favourites.length === 1 ? 'exercise' : 'exercises'}
         </Text>
@@ -92,10 +94,10 @@ export const FavouritesScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: lightTheme.background,
+    backgroundColor: theme.background,
   },
   header: {
     padding: 20,
@@ -104,22 +106,22 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: lightTheme.text,
+    color: theme.text,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: lightTheme.textSecondary,
+    color: theme.textSecondary,
   },
   listContainer: {
     padding: 16,
   },
   card: {
-    backgroundColor: lightTheme.cardBackground,
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: lightTheme.shadowColor,
+    shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: lightTheme.surface,
+    backgroundColor: theme.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -149,12 +151,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: lightTheme.text,
+    color: theme.text,
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: lightTheme.textSecondary,
+    color: theme.textSecondary,
     textTransform: 'capitalize',
   },
   heartIcon: {
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   badge: {
-    backgroundColor: lightTheme.primary,
+    backgroundColor: theme.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   difficultyBadge: {
-    backgroundColor: lightTheme.accent,
+    backgroundColor: theme.accent,
   },
   badgeText: {
     color: '#FFFFFF',
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: lightTheme.background,
+    backgroundColor: theme.background,
   },
   emptyIcon: {
     fontSize: 64,
@@ -195,17 +197,17 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: lightTheme.text,
+    color: theme.text,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,
-    color: lightTheme.textSecondary,
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   browseButton: {
-    backgroundColor: lightTheme.primary,
+    backgroundColor: theme.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
